@@ -41,7 +41,7 @@ const server = app.listen(process.env.PORT || 5000, () =>
 );
 const io = socket(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "https://social-net-fe.vercel.app",
     methods: ["GET", "POST"],
     credentials: true
   }
