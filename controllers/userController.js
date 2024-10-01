@@ -101,7 +101,7 @@ module.exports.uploadImages = async (req, res, next) => {
 
   try {
     const files = req.files;
-    const path = 'http://localhost:5000/images/'
+    const path = 'https://social-test-be.onrender.com/images/'
     var images = []
     files.map((i) => {
       images.push(path + i.filename)
