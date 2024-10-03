@@ -7,6 +7,7 @@ const notifyRoutes = require("./routes/notify")
 const postsRoute = require("./routes/post")
 const friendRoutes = require("./routes/friends")
 const app = express();
+const path = require('path');
 const socket = require("socket.io");
 require("dotenv").config();
 
