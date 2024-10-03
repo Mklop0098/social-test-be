@@ -14,11 +14,6 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
-app.use(express.static(path.join(__dirname, 'dist')));
-
-app.get('/*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
 
 
 mongoose
@@ -43,6 +38,13 @@ app.use("/api/notify", notifyRoutes);
 app.use("/api/post", postsRoute);
 app.use("/api/friends", friendRoutes);
 app.use("/images", express.static('src/images'))
+
+// app.use(express.static(path.join(__dirname, 'dist')));
+
+// app.get('/*', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// });
+
 
 const server = app.listen(process.env.PORT || 5000, () =>
   console.log(`Server started on ${process.env.PORT || 5000}`)
