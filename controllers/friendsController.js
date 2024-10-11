@@ -1,3 +1,4 @@
+const User = require("../models/userModel");
 const Friend = require("../models/friendsModel");
 
 module.exports.createData = async (req, res, next) => {
@@ -75,6 +76,39 @@ module.exports.getFriendData = async (req, res, next) => {
         ])
         if (friendData.length > 0) {
             return res.json({status: true, friendData})
+        }
+        return res.json({status: false, msg: "Invalid id"})
+    } catch (ex) {
+        next(ex);
+        return res.json({status: false, msg: ex})
+    }
+}
+
+module.exports.getFriendListData = async (req, res, next) => {
+
+    const {userId} = req.body
+
+    const getUserData = async (id) => {
+        const userData = await User.find({_id: id})
+        if (userData) {
+            return userData
+        }
+        return null
+    }
+
+    try {
+        let friendList = []
+        const friendData = await Friend.find({ userId }).select([
+            "friendList",
+        ])
+        if (friendData.length > 0) {
+            friendData.forEach(async friend => {
+                const userData =  await getUserData()
+                friendList.push(userData)
+            })
+        }
+        if (friendList.length > 0) {
+            return res.json({status: true, data: friendList})    
         }
         return res.json({status: false, msg: "Invalid id"})
     } catch (ex) {
