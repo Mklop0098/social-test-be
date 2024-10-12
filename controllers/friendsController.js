@@ -2,7 +2,6 @@ const User = require("../models/userModel");
 const Friend = require("../models/friendsModel");
 
 module.exports.createData = async (req, res, next) => {
-    console.log(req.body)
     try {
         const {userId} = req.body
         const user = await Friend.findOne({ userId});
@@ -55,11 +54,19 @@ module.exports.addRequestList = async (req, res, next) => {
                 friendList: [],
                 requestList: [],
             });
-        } 
-        const update =  await Friend.findOneAndUpdate(
-            {userId},
-            { $push: { requestList: {friendId} } }
-        ) 
+            await Friend.findOneAndUpdate(
+                {userId},
+                { $push: { requestList: {friendId} } }
+            ) 
+        }
+        else {
+            if (!user.requestList.find(friend => friend.friendId === friendId)) {
+                await Friend.findOneAndUpdate(
+                    {userId},
+                    { $push: { requestList: {friendId} } }
+                ) 
+            }
+        }
         return res.json({status: true})
     } catch (ex) {
         next(ex);
@@ -85,34 +92,66 @@ module.exports.getFriendData = async (req, res, next) => {
 }
 
 module.exports.getFriendListData = async (req, res, next) => {
-
-    const {userId} = req.body
-
+    const { userId } = req.body;
+  
     const getUserData = async (id) => {
-        const userData = await User.find({_id: id})
-        if (userData) {
-            return userData
-        }
-        return null
-    }
-
+      const userData = await User.find({ _id: id });
+      if (userData) {
+        return userData[0];
+      }
+      return null;
+    };
+  
     try {
-        let friendList = []
-        const friendData = await Friend.find({ userId }).select([
-            "friendList",
-        ])
-        if (friendData.length > 0) {
-            friendData.forEach(async friend => {
-                const userData =  await getUserData()
-                friendList.push(userData)
-            })
-        }
-        if (friendList.length > 0) {
-            return res.json({status: true, data: friendList})    
-        }
-        return res.json({status: false, msg: "Invalid id"})
+      const friendData = await Friend.find({ userId }).select([
+        "friendList",
+      ]);
+  
+      if (friendData.length > 0) {
+        const friendList = await Promise.all(
+          friendData[0].friendList.map(async (friend) => {
+            return await getUserData(friend.friendId);
+          })
+        );
+        return res.json({ status: true, data: friendList });
+      }
+  
+      return res.json({ status: false, msg: "Empty" });
     } catch (ex) {
-        next(ex);
-        return res.json({status: false, msg: ex})
+      next(ex);
+      return res.json({ status: false, msg: ex.message });
     }
-}
+  };
+  
+  module.exports.getRequestFriendsData = async (req, res, next) => {
+    const { userId } = req.body;
+  
+    const getUserData = async (id) => {
+      const userData = await User.find({ _id: id });
+      if (userData) {
+        return userData[0];
+      }
+      return null;
+    };
+  
+    try {
+      const friendData = await Friend.find({ userId }).select([
+        "requestList",
+      ]);
+
+      if (friendData.length > 0) {
+        const friendList = await Promise.all(
+          friendData[0].requestList.map(async (friend) => {
+            return await getUserData(friend.friendId);
+          })
+        );
+        return res.json({ status: true, data: friendList });
+      }
+  
+      return res.json({ status: false, msg: "Empty" });
+    } catch (ex) {
+      next(ex);
+      return res.json({ status: false, msg: ex.message });
+    }
+  };
+  

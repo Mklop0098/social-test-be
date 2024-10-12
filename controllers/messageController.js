@@ -45,8 +45,6 @@ module.exports.getReceiveMessages = async (req, res, next) => {
   try {
     const { to } = req.body;
 
-    console.log(to)
-
     const receiver = await Messages.find({
       receiver: to
     }).sort({ updatedAt: 1 })
