@@ -35,6 +35,19 @@ module.exports.getAllPosts = async (req, res, next) => {
   }
 };
 
+module.exports.getPostById = async (req, res, next) => {
+  const {id} = req.body
+  try {
+    const post = await Post.find({_id: id})
+    if (post) {
+      return res.json({status: true, post})
+    }
+    else return res.json({status: false})
+  } catch (ex) {
+    next(ex);
+  }
+};
+
 module.exports.getAllUserPosts = async (req, res, next) => {
   try {
     const {userId} = req.body

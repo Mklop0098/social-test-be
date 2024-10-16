@@ -1,4 +1,4 @@
-const { createPost, getAllPosts, likePost, removeLikePost, getAllUserPosts, commentPost, sharePost } = require("../controllers/postsController");
+const { createPost, getAllPosts, likePost, removeLikePost, getAllUserPosts, commentPost, sharePost, getPostById } = require("../controllers/postsController");
 const { uploadImages } = require("../controllers/userController");
 const { uploadMiddleware } = require("../middlewares/fileUpload.middlewares");
 
@@ -12,5 +12,6 @@ router.post("/removelike", removeLikePost)
 router.post("/getuserposts", getAllUserPosts)
 router.post("/commentpost", commentPost)
 router.post("/sharepost", sharePost)
+router.post('/getpost', getPostById)
 
 module.exports = router;
