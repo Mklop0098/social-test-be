@@ -14,6 +14,7 @@ module.exports.getMessages = async (req, res, next) => {
       return {
         fromSelf: msg.sender === from,
         message: msg.message.text,
+        imgs: msg.message.imgs
       };
     });
     res.json({status: true, projectedMessages});
@@ -25,8 +26,9 @@ module.exports.getMessages = async (req, res, next) => {
 module.exports.addMessage = async (req, res, next) => {
   try {
     const { from, to, msg } = req.body;
+    console.log(msg)
     const data = await Messages.create({
-      message: { text: msg },
+      message: { text: msg.text, imgs: msg.imgs },
       users: [from, to],
       sender: from,
       receiver: to,
