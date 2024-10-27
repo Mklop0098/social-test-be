@@ -8,6 +8,8 @@ const postsRoute = require("./routes/post")
 const friendRoutes = require("./routes/friends")
 const app = express();
 const socket = require("socket.io");
+const axios = require("axios")
+
 require("dotenv").config();
 
 app.use(cors());
@@ -51,12 +53,45 @@ const io = socket(server, {
 
 global.onlineUsers = new Map();
 io.on("connection", (socket) => {
-  
+
   global.chatSocket = socket;
 
-  socket.on("add-user", (userId) => {
+  const getFriendOnline = async (userId) => {
+    const friends = await axios.post('https://social-test-be.onrender.com/api/friends/getFriendListv2', {
+      userId
+    })
+    const onlineFriends = friends.data.data
+    let b = []
+    if (onlineFriends) {
+      onlineFriends.forEach((friend) => {
+        const friendSocketId = onlineUsers.get(friend._id);
+        if (friendSocketId) {
+          b.push(friend._id)
+        }
+      });
+    }
+    return b
+  }
+
+  socket.on("add-user", async (userId) => {
     const id = socket.id
     onlineUsers.set(userId, id);
+
+    const friendList = await getFriendOnline(userId)
+
+    console.log('a', friendList)
+    io.to(id).emit("onlineUser", friendList);
+
+    if (friendList.length > 0) {
+      friendList.forEach(async (friend) => {
+        const online = await getFriendOnline(friend)
+        const friendSocketId = onlineUsers.get(friend);
+        console.log('h', online)
+        io.to(friendSocketId).emit("addUserOnline", online);
+      });
+    }
+
+
   });
 
   socket.on("remove-user", (userId) => {
@@ -81,7 +116,7 @@ io.on("connection", (socket) => {
       }
     }
   })
-  
+
   socket.on("like-post", (data) => {
     const sendUserSocket = onlineUsers.get(data.owner);
     if (sendUserSocket) {
@@ -96,4 +131,24 @@ io.on("connection", (socket) => {
     }
   })
 
+  socket.on('disconnect', async () => {
+
+    console.log(`User disconnected: ${socket.id}`);
+    let userId;
+    onlineUsers.forEach(async (value, key) => {
+      if (value === socket.id) {
+        onlineUsers.delete(key);
+        userId = key
+      }
+    })
+    const friendList = await getFriendOnline(userId)
+    if (friendList.length > 0) {
+      friendList.forEach(async (friend) => {
+        const online = await getFriendOnline(friend)
+        const friendSocketId = onlineUsers.get(friend);
+        console.log('h', online)
+        io.to(friendSocketId).emit("userOffline", online);
+      });
+    }
+  });
 });

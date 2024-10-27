@@ -91,6 +91,23 @@ module.exports.getFriendData = async (req, res, next) => {
     }
 }
 
+
+module.exports.getFriendList = async (req, res, next) => {
+  const { userId } = req.body;
+  try {
+    const friendData = await Friend.find({ userId }).select("friendList");
+    console.log(friendData)
+    if (friendData.length > 0) {
+      return res.json({ status: true, data: friendData });
+    }
+
+    return res.json({ status: false, msg: "Empty" });
+  } catch (ex) {
+    next(ex);
+    return res.json({ status: false, msg: ex.message });
+  }
+};
+
 module.exports.getFriendListData = async (req, res, next) => {
     const { userId } = req.body;
   
