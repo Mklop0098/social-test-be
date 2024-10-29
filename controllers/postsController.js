@@ -1,4 +1,5 @@
 const Post = require("../models/postsModel");
+const { ObjectId } = require('mongodb');
 
 module.exports.createPost = async (req, res, next) => {
   try {
@@ -107,19 +108,43 @@ module.exports.removeLikePost = async (req, res, next) => {
 
 module.exports.commentPost = async (req, res, next) => {
 
+  const commentId = new ObjectId()
+
   try {
-    const {userId, postId, comment} = req.body
+    const {userId, postId, comment, parents} = req.body
     const post = await Post.find({_id: postId})
     const time = new Date()
 
-    if (post) {
-      await Post.findOneAndUpdate(
-        {_id: postId},
-        { $push: { comments: {userId, comment, createAt: time} } }
-      ) 
-      return res.json({status: true, post})
+    if (!parents) {
+      if (post) {
+        await Post.findOneAndUpdate(
+          {_id: postId},
+          { $push: { comments: {_id: commentId, userId, comment, createAt: time, child: [], parents: [commentId.toString()]} } },
+          {
+            new: true,
+          }
+        ) 
+      }
+    }
+    else {
+      if (post) {
+        await Post.findOneAndUpdate(
+          { _id: postId},
+          { $push: { comments: {_id: commentId, userId, comment, createAt: time, child: [], parents: [...parents, commentId.toString()]} }},
+          {
+            new: true,
+          }
+        ) 
+      }
+    }
+
+    const result = await Post.find({_id: postId})
+
+    if (result) {
+      return res.json({status: true, result})
     }
     else return res.json({status: false})
+    
   } catch (ex) {
     next(ex);
   }

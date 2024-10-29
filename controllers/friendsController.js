@@ -96,7 +96,6 @@ module.exports.getFriendList = async (req, res, next) => {
   const { userId } = req.body;
   try {
     const friendData = await Friend.find({ userId }).select("friendList");
-    console.log(friendData)
     if (friendData.length > 0) {
       return res.json({ status: true, data: friendData });
     }

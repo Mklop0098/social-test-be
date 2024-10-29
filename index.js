@@ -5,6 +5,7 @@ const authRoutes = require("./routes/auth");
 const messageRoutes = require("./routes/messages");
 const notifyRoutes = require("./routes/notify")
 const postsRoute = require("./routes/post")
+const storyRoute = require('./routes/story')
 const friendRoutes = require("./routes/friends")
 const app = express();
 const socket = require("socket.io");
@@ -37,6 +38,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notify", notifyRoutes);
 app.use("/api/post", postsRoute);
+app.use("/api/story", storyRoute);
 app.use("/api/friends", friendRoutes);
 app.use("/images", express.static('src/images'))
 
@@ -79,14 +81,12 @@ io.on("connection", (socket) => {
 
     const friendList = await getFriendOnline(userId)
 
-    console.log('a', friendList)
     io.to(id).emit("onlineUser", friendList);
 
     if (friendList.length > 0) {
       friendList.forEach(async (friend) => {
         const online = await getFriendOnline(friend)
         const friendSocketId = onlineUsers.get(friend);
-        console.log('h', online)
         io.to(friendSocketId).emit("addUserOnline", online);
       });
     }
@@ -133,7 +133,6 @@ io.on("connection", (socket) => {
 
   socket.on('disconnect', async () => {
 
-    console.log(`User disconnected: ${socket.id}`);
     let userId;
     onlineUsers.forEach(async (value, key) => {
       if (value === socket.id) {
@@ -146,7 +145,6 @@ io.on("connection", (socket) => {
       friendList.forEach(async (friend) => {
         const online = await getFriendOnline(friend)
         const friendSocketId = onlineUsers.get(friend);
-        console.log('h', online)
         io.to(friendSocketId).emit("userOffline", online);
       });
     }
